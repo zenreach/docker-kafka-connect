@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/zenreach/docker-kafka-connect.svg?branch=master)](https://travis-ci.org/zenreach/docker-kafka-connect)
+
 # Kafka Connect Docker Container
 
 This repo contains a Kafka Connect Docker container with the prometheus jmx exporter installed.
