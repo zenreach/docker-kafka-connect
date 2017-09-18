@@ -1,0 +1,72 @@
+version: '2.1'
+services:
+  connect-config:
+    image: byrnedo/alpine-curl
+    command: "-f -XPUT http://kafka-connect:8083/connectors/psql-sink/config -H \"Content-Type: application/json\" -H \"Accept: application/json\" --data-binary @/usr/local/share/sink-config.json"
+    links:
+      - kafka-connect
+    depends_on:
+      kafka-connect:
+        condition: service_healthy
+    volumes:
+      - ./sink-config.json:/usr/local/share/sink-config.json
+
+  kafka-connect:
+    image: zenreach/kafka-connect
+    build:
+      context: ../
+    container_name: kafka-connect
+    ports:
+      - "8083:8083"
+      - "9242:9242"
+    links:
+      - kafka
+      - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost:8083/connectors", "-H", "Content-Type: application/json", "-H", "Accept: application/json"]
+      interval: 10s
+      retries: 3
+    environment:
+      - CONNECT_BOOTSTRAP_SERVERS=kafka:9092
+      - CONNECT_REST_PORT=8083
+      - CONNECT_GROUP_ID=local
+      - CONNECT_CONFIG_STORAGE_TOPIC=local-config
+      - CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR=1
+      - CONNECT_OFFSET_STORAGE_TOPIC=local-offsets
+      - CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR=1
+      - CONNECT_STATUS_STORAGE_TOPIC=local-status
+      - CONNECT_STATUS_STORAGE_REPLICATION_FACTOR=1
+      - CONNECT_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - CONNECT_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - CONNECT_INTERNAL_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - CONNECT_INTERNAL_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - CONNECT_REST_ADVERTISED_HOST_NAME=kafka-connect
+
+  kafka:
+    image: confluentinc/cp-kafka:3.2.2
+    container_name: kafka
+    environment:
+      - ADVERTISED_HOST=kafka
+      - ADVERTISED_PORT=9092
+    expose:
+      - 9092
+    links:
+      - zookeeper
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+  
+  zookeeper:
+    image: confluentinc/cp-zookeeper:3.2.2
+    container_name: zookeeper
+    expose:
+      - 2181
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+
+  postgres:
+    image: postgres:9-alpine
+    container_name: postgres
+    expose:
+      - 5432
