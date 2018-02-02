@@ -1,36 +1,19 @@
-version: '2.1'
+version: '3'
 services:
-  connect-config:
-    image: byrnedo/alpine-curl
-    command: "-f -XPUT http://kafka-connect:8083/connectors/mongo-source/config -H \"Content-Type: application/json\" -H \"Accept: application/json\" --data-binary @/usr/local/share/mongo-source-config.json"
-    links:
-      - kafka-connect
-    depends_on:
-      kafka-connect:
-        condition: service_healthy
-    volumes:
-      - ./mongo-source-config.json:/usr/local/share/mongo-source-config.json
-
   kafka-connect:
     image: zenreach/kafka-connect
     build:
       context: ../
     container_name: kafka-connect
     ports:
-      - "8083:8083"
+      - "8083:80"
       - "9242:9242"
     links:
       - kafka
-      - mongos
       - mongo
       - schema-registry
-    healthcheck:
-      test: ["CMD", "curl", "-f", "localhost:8083/connectors", "-H", "Content-Type: application/json", "-H", "Accept: application/json"]
-      interval: 10s
-      retries: 3
     environment:
       - CONNECT_BOOTSTRAP_SERVERS=kafka:9092
-      - CONNECT_REST_PORT=8083
       - CONNECT_GROUP_ID=local
       - CONNECT_CONFIG_STORAGE_TOPIC=local-config
       - CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR=1
@@ -38,16 +21,12 @@ services:
       - CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR=1
       - CONNECT_STATUS_STORAGE_TOPIC=local-status
       - CONNECT_STATUS_STORAGE_REPLICATION_FACTOR=1
-      - CONNECT_KEY_CONVERTER=io.confluent.connect.avro.AvroConverter
       - CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL=http://schema-registry:8081
-      - CONNECT_VALUE_CONVERTER=io.confluent.connect.avro.AvroConverter
       - CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL=http://schema-registry:8081
-      - CONNECT_INTERNAL_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter
-      - CONNECT_INTERNAL_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
       - CONNECT_REST_ADVERTISED_HOST_NAME=kafka-connect
 
   schema-registry:
-    image: confluentinc/cp-schema-registry:3.2.2
+    image: confluentinc/cp-schema-registry:4.0.0
     container_name: schema-registry
     links:
       - zookeeper
@@ -61,7 +40,7 @@ services:
       - SCHEMA_REGISTRY_KAFKASTORE_REPLICATION_FACTOR=1
 
   kafka:
-    image: confluentinc/cp-kafka:3.2.2
+    image: confluentinc/cp-kafka:4.0.0
     container_name: kafka
     environment:
     ports:
@@ -74,67 +53,16 @@ services:
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
   
   zookeeper:
-    image: confluentinc/cp-zookeeper:3.2.2
+    image: confluentinc/cp-zookeeper:4.0.0
     container_name: zookeeper
     ports:
       - "2181:2181"
     environment:
       - ZOOKEEPER_CLIENT_PORT=2181
 
-  mongos:
-    image: mongo:3.0
-    container_name: mongos
-    command: ["retry.sh", "mongos", "--configdb", "mongocfg:27019,mongocfg:27020,mongocfg:27021"]
-    links:
-      - mongocfg
-      - mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - ./container/retry.sh:/usr/bin/retry.sh
-
-  mongocfg:
-    image: mongo:3.0
-    container_name: mongocfg
-    command: |
-      bash -c "mongod --configsvr --dbpath /data/db0 & \
-      mongod --configsvr --dbpath /data/db1 --port 27020 & \
-      mongod --configsvr --dbpath /data/db2 --port 27021"
-    expose:
-      - 27019
-      - 27020 
-      - 27021
-    volumes:
-      - cfg0_vol:/data/db0
-      - cfg1_vol:/data/db1
-      - cfg2_vol:/data/db2
-
   mongo:
-    image: mongo:3.0
+    image: mongo:3.2
     container_name: mongo
     command: ["mongod", "--replSet", "rs0"]
-    expose:
-      - 27017
-    healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.runCommand({ping: 1})"]
-      interval: 1s
-      timeout: 3s
-      retries: 5
-    volumes:
-      - mongo_vol:/data/db
-
-  mongo-init:
-    image: mongo:3.0
-    container_name: mongo-init
-    command: ["/init.sh"]
-    links:
-      - mongo
-      - mongos
-    volumes:
-      - ./container/init.sh:/init.sh
-
-volumes:
-  mongo_vol:
-  cfg0_vol:
-  cfg1_vol:
-  cfg2_vol:
+    ports:
+      - "27017:27017"
