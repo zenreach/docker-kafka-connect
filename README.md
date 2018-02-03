@@ -10,7 +10,8 @@ We've found running the jmx exporter in server mode to be problematic, and prome
 
 The third party plugins included are:
 
-- [Debezium Connector for MongoDB](http://debezium.io/docs/connectors/mongodb/)
+- [Debezium Source Connector for MongoDB](http://debezium.io/docs/connectors/mongodb/)
+- [Debezium MongoDB CDC-Compatible Sink Connector](https://github.com/hpgrahsl/kafka-connect-mongodb)
 
 ## JMX
 
@@ -23,3 +24,7 @@ KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.au
 ## Prometheus Monitoring
 
 Prometheus metrics will be exported on port 9242. The jmx metrics that are exported are those that match the patterns in the `jmx_exporter.yaml` config.
+
+## Example
+
+For example usage with the bundled third-party connectors, see the [test documentation](test/README.md).

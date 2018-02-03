@@ -1,0 +1,7 @@
+{
+    "connector.class": "io.debezium.connector.mongodb.MongoDbConnector",
+    "mongodb.hosts": "rs0/mongo:27017",
+    "mongodb.name": "test",
+    "collection.whitelist": "foo.bar",
+    "tasks.max": 1
+}

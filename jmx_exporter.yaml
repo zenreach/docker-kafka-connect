@@ -5,33 +5,27 @@ rules:
     labels:
       clientId: "$1"
       nodeId: "$2"
-    type: GAUGE
   - pattern: kafka.connect<type=connect-coordinator-metrics, client-id=(.+)><>([a-z-]+)thu
     name: kafka_connect_coordinator_$2
     labels:
       clientId: "$1"
-    type: GAUGE
   - pattern: kafka.consumer<type=consumer-node-metrics, client-id=(.+), node-id=(.+)><>([a-z-]+)
     name: kafka_connect_consumer_node_$3
     labels:
       clientId: "$1"
       nodeId: "$2"
-    type: GAUGE
   - pattern: kafka.consumer<type=consumer-fetch-manager-metrics, client-id=(.+), topic=(.+)><>([a-z-]+)
     name: kafka_connect_consumer_fetch_manager_$3
     labels:
       clientId: "$1"
       topic: "$2"
-    type: GAUGE
   - pattern: kafka.producer<type=producer-topic-metrics, client-id=(.+), topic=(.+)><>([a-z-]+)
     name: kafka_connect_producer_topic_$3
     labels:
       clientId: "$1"
       topic: "$2"
-    type: GAUGE
   - pattern: kafka.producer<type=producer-node-metrics, client-id=(.+), node-id=(.+)><>([a-z-]+)
     name: kafka_connect_producer_node_$3
     labels:
       clientId: "$1"
       nodeId: "$2"
-    type: GAUGE
