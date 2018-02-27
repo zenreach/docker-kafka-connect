@@ -23,7 +23,7 @@ KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.au
 
 ## Prometheus Monitoring
 
-Prometheus metrics will be exported on port 9242. The jmx metrics that are exported are those that match the patterns in the `jmx_exporter.yaml` config.
+Prometheus metrics will be exported on port 9400. The jmx metrics that are exported are those that match the patterns in the `jmx_exporter.yaml` config.
 
 ## Example
 
