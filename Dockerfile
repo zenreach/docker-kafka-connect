@@ -18,3 +18,6 @@ RUN mkdir -p /etc/jmx_exporter
 ADD ./jmx_exporter.yaml /etc/jmx_exporter
 ADD ./libs/* /usr/local/share/jars/
 ADD ./plugins /usr/local/share/kafka_connect/plugins/
+ADD ./bin/* /usr/local/bin/
+
+CMD ["/usr/local/bin/entrypoint.sh"]
